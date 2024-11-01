@@ -167,11 +167,11 @@ link_group_header <- function( dep_var_name, label=NA ) {
     hyperlink_text <- paste0("\\underline{\\hyperlink{", label, "}{", dep_var_name, "}}")
   }
   #  {\underline{\hyperlink{page.3}{Pre vs Post Treatment}}}
-  return(paste0("\\hspace*{1em}{", hyperlink_text, "}")) #\\\\"))
+  return(paste0("{", hyperlink_text, "}")) #\\\\"))
 }
 
 current_link <- function( link_text ) {
-  return( paste0("\\hspace*{2em}{\\small\\textbf{", link_text, "}}")) #\\\\" ) )
+  return( paste0("{\\textbf{", link_text, "}}")) #\\\\" ) )
 }
 
 clickable_link <- function( link_text, label, color=NA ) {
@@ -179,6 +179,6 @@ clickable_link <- function( link_text, label, color=NA ) {
   if ( !is.na(color) ) {
     #clr_text <- paste0("\\textcolor{", color, "}")
   }
-  return( paste0("\\hspace*{2em}{\\small", clr_text, "\\hyperlink{", label, "}{", link_text, "}}")) #\\\\"))
+  return( paste0("{", clr_text, "\\hyperlink{", label, "}{", link_text, "}}")) #\\\\"))
 }
 
