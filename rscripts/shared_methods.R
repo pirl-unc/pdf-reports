@@ -120,7 +120,7 @@ boilerplate_header <- function( margin_txt=".1in" ) {
 }
 
 # helper to create a title page with image and report data
-create_title_page = function(	pdf_title=report_title, pdf_logo=my_logo, pdf_author=report_author, pdf_assistant_author=report_assistant_author ){
+create_title_page = function(	pdf_title=report_title, pdf_subtitle=report_subtitle, pdf_logo=my_logo, pdf_author=report_author, pdf_assistant_author=report_assistant_author ){
   my_output = c(
     "\\hypersetup{pageanchor=false}",
     "\\begin{titlepage}",
@@ -130,10 +130,14 @@ create_title_page = function(	pdf_title=report_title, pdf_logo=my_logo, pdf_auth
     "\\vfill",
     paste0("\\includegraphics[height=4in,keepaspectratio]{", pdf_logo, "}\\par"), # yes we have to keep the \\par here, otherwise latex tries to put the following text on the same line
     "\\vspace{.2in}", 
-    paste0("{\\LARGE ", pdf_title, "}\\par"),
-    "\\vspace{.2in}", 
-    paste0("{\\large\\textsc{", pdf_author, "}}\\par")
+    paste0("{\\LARGE ", pdf_title, "}\\par")
   )
+  if ( !is.na(pdf_subtitle) ) {
+    my_output %<>% c("\\vspace{.05in}", paste0("{\\normalsize ", pdf_subtitle, "}\\par"), "\\vspace{.5in}")
+  } else {
+    my_output %<>% c("\\vspace{.5in}")
+  }
+  my_output %<>% c(paste0("{\\large\\textsc{", pdf_author, "}}\\par"))
   if ( !is.na(report_assistant_author) ) {
     my_output %<>% c("\\vspace{.05in}", paste0("{\\textsc{and ", pdf_assistant_author, "}}\\par"))
   }
@@ -162,9 +166,9 @@ make_single_page <- function( content ) {
 
 link_group_header <- function( dep_var_name, label=NA ) {
   # default is no underline but if there is a page to link to, underline the text
-  hyperlink_text <- dep_var_name
+  hyperlink_text <- paste0("\\shortstack{", dep_var_name, "}")
   if( !is.na(label) ) {
-    hyperlink_text <- paste0("\\underline{\\hyperlink{", label, "}{", dep_var_name, "}}")
+    hyperlink_text <- paste0("\\underline{\\hyperlink{", label, "}{",hyperlink_text, "}}")
   }
   #  {\underline{\hyperlink{page.3}{Pre vs Post Treatment}}}
   return(paste0("{", hyperlink_text, "}")) #\\\\"))
