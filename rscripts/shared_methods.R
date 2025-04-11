@@ -83,13 +83,13 @@ add_readmes <- function ( primary_df, readme_dirpath=input_dirpath ) {
   
   primary_df$Readme_Path <- NA
   for( idx in 1:nrow(primary_df) ) {
-    # idx <- 1
+    # idx <- 5
     readme_name <- paste0(primary_df$Filename[idx], "_readme.txt")
     this_readme <- grep(paste0("/", readme_name), my_readmes, value = T)
     if( !length(this_readme) ) {
-      print(paste0("The readme for ", primary_df$Filename, " could not be found."))
+      print(paste0("The readme for ", primary_df$Filename[idx], " could not be found."))
     } else if ( length(this_readme) > 1 ) {
-      print(paste0("More than 1 readme was found for ", primary_df$Filename, "."))
+      print(paste0("More than 1 readme was found for ", primary_df$Filename[idx], "."))
     } else {
       primary_df$Readme_Path[ idx ] <- this_readme
     }

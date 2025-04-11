@@ -1,21 +1,40 @@
 
 ### this combination of navigation and page layout works when there are two sets of files that need to link to each other
 ## for instance, where each ( or most ) plots have a readme file that goes along with them, here you can create pages that link from plot to readme and back
-##. for examples of this in use, check out the PIRL Patel_SCCHN_2024 raft project's make_report.R file found in the workflow directory
+##. for examples of this in use, check out the PIRL Patel_SCCHN_2024 raft project's make_report.R file found in its {project}/workflow/pdf-reports/reports folder
+## it can be used for any combination of pages where there are or are not sub-items
 
+#. Responder vs Non-Responder
+#     Volcano Plot
+#     Line plot
+#     Another plot
+#  Immune Subtypes Plot
+#  Treated vs Not-Treated
+#     Barplot
+#     Heatmap
+#  Other Categories ...
 
 ###!!!  This code depends upon the shared_methods.R code for several methods ###
 
 # my_dep refers to the primary navigation level while my_metric refers to the sub navigation list under each of the primary navigation items
-make_primary_navigation <- function( pages, my_dep, my_metric, dep_var_lut, my_key, my_prefix, links_enabled=T, list_leftmargin_txt="0in", list_fontsize_lbl="small" ) {
+# pages - all pages in this report as dataframe with Page_Key, Dep_Var, Metric columns where Page_Key should be unique for each combination of Dep_Var and Metric
+# my_dep - the Dep_Var for the current page ... the one that should be shown as active in the navigation
+# my_metric - the Metric for the current page ... the one that should be shown as active in the navigation
+# dep_var_lut - the lookup table for pretty/descriptive labels of Dep_Var column values ( which may have to be valid for filenames, etc. so not pretty for display )
+# my_prefix - the prefix for this set of pages ... this method will be called twice, once for each of the mirrored groups of files ... 
+#     i.e. once with my_prefix = "readme" and once as my_prefix = "plot" so that links with the same Page_Key can be differentiated 
+# links_enabled - whether to print menu items as links, or as normal text - to test navigation as standalone
+# list_leftmargin_txt - how far to shift nav elements to the right
+# list_fontsize_lbl - how large is font for the list elements
+make_primary_navigation <- function( pages, my_dep, my_metric, dep_var_lut, my_prefix, links_enabled=T, list_leftmargin_txt="0in", list_fontsize_lbl="small" ) {
   begin_list_tex <- paste0("\\begin{description}[leftmargin=", list_leftmargin_txt, ",topsep=1pt,itemsep=4pt,parsep=0pt,partopsep=0pt]")
   page_links <- c(begin_list_tex, paste0("\\begin{", list_fontsize_lbl, "}")) # description is a list without enumeration or bulleting
   # first link will be the standalone immune subtypes ...
-  if ( my_dep == "immune_subtypes" | !links_enabled ) {
-    page_links %<>% c(paste0("\\item{", link_group_header( "Immune Subtypes" ), "}"))
-  } else {
-    page_links %<>% c(paste0("\\item{", link_group_header("Immune Subtypes", label=paste0(my_prefix, "_Immune_Subtypes")), "}"))
-  }
+  # if ( my_dep == "immune_subtypes" | !links_enabled ) {
+  #   page_links %<>% c(paste0("\\item{", link_group_header( "Immune Subtypes" ), "}"))
+  # } else {
+  #   page_links %<>% c(paste0("\\item{", link_group_header("Immune Subtypes", label=paste0(my_prefix, "_Immune_Subtypes")), "}"))
+  # }
   #  page_links %<>% c("\\vspace{.5cm}")
   #		page_links %<>% c("\\bigskip")
   #		page_links %<>% c("\\noindent")
@@ -24,7 +43,7 @@ make_primary_navigation <- function( pages, my_dep, my_metric, dep_var_lut, my_k
   #   we will use colored links under each dep_var header for the plot of the same metric as this page
   #   we will use normal links for all other plots
   for ( dep in unique(pages$Dep_Var) ) {
-    #dep <- names(dep_var_lut[2])
+    #dep <- pages$Dep_Var[1]
     if ( my_dep == dep | !links_enabled ){
       this_key <- NA
     } else {
@@ -38,7 +57,7 @@ make_primary_navigation <- function( pages, my_dep, my_metric, dep_var_lut, my_k
     # page_links %<>% c("\\vspace{-0.5cm}")
     # page_links %<>% c("\\raggedright")
     # page_links %<>% c("\\noindent")
-    if ( my_dep != "immune_subtypes" & dep == my_dep ) {
+    if ( dep == my_dep ) {
       sub_df <- pages[ pages$Dep_Var == dep, ]
       page_links %<>% c(begin_list_tex) #, paste0("\\begin{", list_fontsize_lbl, "}"))
       for ( met in sub_df$Metric %>% as.character() ) {
@@ -69,19 +88,19 @@ make_primary_navigation <- function( pages, my_dep, my_metric, dep_var_lut, my_k
 
 # workhorse method that creates a single page with clickable links to all slides and whatever plot goes on that page
 make_new_pdf_page = function(my_df, my_index, nav_proportion=.3, this_prefix="plot", to_prefix="readme", links_enabled=T, nav_leftmargin_txt="0in", nav_fontsize_lbl="small" ){
-  
-  # my_index <- 0
-  if ( my_index == 0 ) { # this is the standalone immune subtypes plot 
-    my_path = immune_subtypes_df$Path
-    my_dep = immune_subtypes_df$Dep_Var %>% as.character
-    my_metric = metrics[1]
-    my_width = immune_subtypes_df$Px_Width
-    my_height = immune_subtypes_df$Px_Height
-    my_data_file = immune_subtypes_df$Data_File
-    my_page_key = "Immune_Subtypes"
-    my_readme_path = NA
-    my_to_link <- ""
-  } else { # this is one of the plots in the main df
+  # my_index <- 1
+  # if ( my_index <= 0 ) { # this is one of the standalone immune subtypes plots 
+  #   subtypes_index <- my_index + 2
+  #   my_path = immune_subtypes_df$Path[subtypes_index]
+  #   my_dep = immune_subtypes_df$Dep_Var[subtypes_index] %>% as.character
+  #   my_metric = immune_subtypes_df$Metric[ subtypes_index ] #metrics[1]
+  #   my_width = immune_subtypes_df$Px_Width[ subtypes_index]
+  #   my_height = immune_subtypes_df$Px_Height[ subtypes_index]
+  #   my_data_file = immune_subtypes_df$Data_File[ subtypes_index]
+  #   my_page_key = "Immune_Subtypes"
+  #   my_readme_path = NA
+  #   my_to_link <- ""
+  # } else { # this is one of the plots in the main df
     my_path = my_df$Path[my_index]
     my_dep = my_df$Dep_Var[my_index] %>% as.character
     my_metric = my_df$Metric[ my_index ] %>% as.character
@@ -91,19 +110,21 @@ make_new_pdf_page = function(my_df, my_index, nav_proportion=.3, this_prefix="pl
     # old method of hyperlinking ... my_readme_link <- paste0("\\hyperlink{", my_df$Filename[ my_index ], "}{View Readme}")
     my_page_key <- my_df$Page_Key[ my_index ]
     my_readme_path = my_df$Readme_Path[ my_index ]
-    if ( links_enabled ) {
+    if ( is.na(my_readme_path) ) {
+      my_to_link <- ""
+    } else if ( links_enabled ) {
       my_to_link <- paste0("\\hyperlink{", to_prefix, "_", my_page_key, "}{View ", stringr::str_to_title(to_prefix), "}")
     } else {
       my_to_link <- paste0("View ", stringr::str_to_title(to_prefix), " ( links disabled for testing )")
     }
-  }	
+  # }	
   
   
   #######.  WRITE NAV LINKS. #######
   # set up for multi-column display of dep vars / metrics plot links
   # use the [c] option to center on both height and width
   nav_latex <- paste0("\\begin{minipage}[c][\\textheight][c]{", nav_proportion %>% as.character(), "\\linewidth}\\centering")
-  nav_latex %<>% c(make_primary_navigation(my_df, my_dep, my_metric, dep_var_lut, my_page_key, this_prefix, links_enabled, list_leftmargin_txt=nav_leftmargin_txt, list_fontsize_lbl=nav_fontsize_lbl))
+  nav_latex %<>% c(make_primary_navigation(my_df, my_dep, my_metric, dep_var_lut, this_prefix, links_enabled, list_leftmargin_txt=nav_leftmargin_txt, list_fontsize_lbl=nav_fontsize_lbl))
   nav_latex %<>% c("\\end{minipage}")
   
   # if this is a readme page, we need to hfill the left and make the minipage narrower or add an hspace ...
