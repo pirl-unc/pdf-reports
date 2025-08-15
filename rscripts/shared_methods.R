@@ -44,13 +44,20 @@ clean_content_for_latex <- function(content) {
 }
 
 # helper for pulling dimensions of pdf files from the system
+# plot_path <- my_df$Path[ row_index ]
 get_plot_dimensions <- function( plot_path ) {
-  my_meta = system(paste0('pdftk ', file.path(input_dirpath, plot_path),' dump_data'), intern = T)
-  
-  my_dim = my_meta[grepl("PageMediaDimensions:", my_meta)]
-  my_dim = gsub("PageMediaDimensions: ","",my_dim)
-  my_dim = as.numeric(strsplit(my_dim,split=" ")[[1]] %>% gsub(",", "", .))
-  
+  if ( grepl("pdf$", plot_path) ) {
+    my_meta = system(paste0('pdftk ', file.path(input_dirpath, plot_path),' dump_data'), intern = T)
+    
+    my_dim = my_meta[grepl("PageMediaDimensions:", my_meta)]
+    my_dim = gsub("PageMediaDimensions: ","",my_dim)
+    my_dim = as.numeric(strsplit(my_dim,split=" ")[[1]])
+  } else if ( grepl("png$", plot_path) ) {
+    my_meta <- magick::image_info(magick::image_read(file.path( input_dirpath, plot_path))) %>% as.data.frame()
+    my_dim <- as.numeric(c(my_meta$width[1], my_meta$height[1]))
+  } else {
+    warning("shared_methods.R get_plot_dimensions does not support images of this type ( ", plot_path, " )")
+  }
   return( my_dim )
 }
 
@@ -123,6 +130,7 @@ boilerplate_header <- function( margin_txt=".1in" ) {
     "\\usepackage{enumitem}",
     "\\usepackage[utf8]{inputenc}", # Ensure UTF-8 encoding
     "\\usepackage{lmodern}", # Use Latin Modern font
+    "\\usepackage{graphicx}",
     "\\hypersetup{",
     "  colorlinks = true,",
     "}",
