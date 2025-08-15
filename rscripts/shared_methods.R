@@ -1,3 +1,14 @@
+
+pdfreport_layout_landscape <- T
+
+report_as_landscape <- function(){
+  pdfreport_layout_landscape <<- T
+}
+
+report_as_portrait <- function(){
+  pdfreport_layout_landscape <<- F
+}
+
 ### validate image being used has necessary libraries
 validate_requirements <- function( required_system_tools ) {
   can_proceed = TRUE
@@ -38,7 +49,7 @@ get_plot_dimensions <- function( plot_path ) {
   
   my_dim = my_meta[grepl("PageMediaDimensions:", my_meta)]
   my_dim = gsub("PageMediaDimensions: ","",my_dim)
-  my_dim = as.numeric(strsplit(my_dim,split=" ")[[1]])
+  my_dim = as.numeric(strsplit(my_dim,split=" ")[[1]] %>% gsub(",", "", .))
   
   return( my_dim )
 }
@@ -123,8 +134,11 @@ boilerplate_header <- function( margin_txt=".1in" ) {
 create_title_page = function(	pdf_title=report_title, pdf_subtitle=report_subtitle, pdf_logo=my_logo, pdf_author=report_author, pdf_assistant_author=report_assistant_author ){
   my_output = c(
     "\\hypersetup{pageanchor=false}",
-    "\\begin{titlepage}",
-    "\\begin{landscape}",
+    "\\begin{titlepage}")
+  if ( pdfreport_layout_landscape ) {
+    my_output %<>% c("\\begin{landscape}")
+  }
+  my_output %<>% c(
     "\\centering",
     "\\hspace{0pt}",
     "\\vfill",
@@ -144,11 +158,17 @@ create_title_page = function(	pdf_title=report_title, pdf_subtitle=report_subtit
   my_output %<>% c(
     "\\vfill",
     paste0("{\\large ", format(Sys.time(), "%B %d, %Y"), "}"),
-    "\\vspace{.2in}",
-    "\\end{landscape}",
+    "\\vspace{.2in}")
+
+  if ( pdfreport_layout_landscape ) {
+    my_output %<>% c("\\end{landscape}")
+  }
+  
+  my_output %<>% c(
     "\\end{titlepage}",
     "\\hypersetup{pageanchor=true}"
   )
+  
   return(my_output)
 }
 
